@@ -36,7 +36,15 @@ export default function ChallengeHistoryPage({ challenges }: ChallengeHistoryPag
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+    <Box
+      sx={{
+        width: '100%',
+        height: '100vh',
+        maxWidth: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 3 }}
+      >
       <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
         チャレンジ履歴
       </Typography>

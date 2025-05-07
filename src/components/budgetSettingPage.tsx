@@ -31,14 +31,51 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
   }
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: "100%", mx: "auto" }}>
+    <Box
+      sx={{
+      width: '100%',
+      height: '100vh',
+      maxWidth: "100%",
+      display: "flex",
+      flexDirection: "column",
+      gap: 3,
+      mx: "auto" }}
+    >
       <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-        <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
+        {/* <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
           予算チャレンジ
         </Typography>
         <Typography variant="body1" gutterBottom align="center" sx={{ mb: 3 }}>
           上限を設定して、ランダムな予算内で1日を過ごしましょう！
-        </Typography>
+        </Typography> */}
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            marginBottom: 3,
+            borderRadius: 2,
+            textAlign: "center",
+            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            color: "white",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            今日の予算
+          </Typography>
+          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+            ¥{actualBudget && actualBudget.toLocaleString()}
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            size="large"
+            onClick={handleStartChallenge}
+            sx={{ mt: 2 }}
+          >
+            チャレンジ開始
+          </Button>
+        </Paper>
 
         <Typography variant="h6" gutterBottom>
           予算範囲を設定
@@ -117,7 +154,7 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
           予算を決定する
         </Button>
 
-        {actualBudget && (
+        {/* {actualBudget && (
           <Paper
             elevation={3}
             sx={{
@@ -145,7 +182,7 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
               チャレンジ開始
             </Button>
           </Paper>
-        )}
+        )} */}
       </Paper>
     </Box>
   )

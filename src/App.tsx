@@ -99,7 +99,17 @@ export default function Home() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Box sx={{ pb: 7, height: "100vh", display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{
+          width: '100vw',
+          height: '100vh',
+          maxWidth: "100%",
+          pb: 7,
+          display: "flex",
+          flexDirection: "column",
+          overflow: 'hidden',
+        }}
+      >
         <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
           {value === 0 && <BudgetSettingPage onCreateChallenge={handleCreateChallenge} />}
           {value === 1 && currentChallenge && (
