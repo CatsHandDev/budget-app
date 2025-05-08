@@ -7,87 +7,142 @@ import Slider from "@mui/material/Slider"
 import TextField from "@mui/material/TextField"
 import Button from "@mui/material/Button"
 import Paper from "@mui/material/Paper"
-import { Dices } from "lucide-react"
+import IconButton from "@mui/material/IconButton"
+import Tooltip from "@mui/material/Tooltip"
+import { styled } from "@mui/material/styles"
+import { Dices, Lock, Unlock, ArrowRight, ArrowLeft } from "lucide-react"
+
+// カスタムスライダーのスタイリング
+const CustomSlider = styled(Slider)(({ theme }) => ({
+  // 固定された下限のスタイル
+  '&[data-min-locked="true"] .MuiSlider-thumb:first-of-type': {
+    backgroundColor: theme.palette.grey[400],
+    border: `2px solid ${theme.palette.primary.main}`,
+  },
+  // 固定された上限のスタイル
+  '&[data-max-locked="true"] .MuiSlider-thumb:last-of-type': {
+    backgroundColor: theme.palette.grey[400],
+    border: `2px solid ${theme.palette.primary.main}`,
+  },
+}))
 
 interface BudgetSettingPageProps {
   onCreateChallenge: (minBudget: number, maxBudget: number, actualBudget: number) => void
 }
 
 export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPageProps) {
-  const [maxBudget, setMaxBudget] = useState<number>(5000)
-  const [minBudget, setMinBudget] = useState<number>(1000)
+  const [maxBudget, setMaxBudget] = useState<number>(100000)
+  const [minBudget, setMinBudget] = useState<number>(100)
   const [actualBudget, setActualBudget] = useState<number | null>(null)
+  const [isMinLocked, setIsMinLocked] = useState<boolean>(false)
+  const [isMaxLocked, setIsMaxLocked] = useState<boolean>(false)
 
   const handleGenerateBudget = () => {
-    // Generate a random budget between min and max budget
+    // 上限と下限が同じ場合は、その値を予算とする
+    if (minBudget === maxBudget) {
+      setActualBudget(minBudget)
+      return
+    }
+
+    // 上限と下限が異なる場合は、ランダムな予算を生成
     const randomBudget = Math.floor(Math.random() * (maxBudget - minBudget + 1)) + minBudget
+    console.log("Generated random budget:", randomBudget)
     setActualBudget(randomBudget)
   }
 
   const handleStartChallenge = () => {
     if (actualBudget) {
+      // 明示的にactualBudgetをログ出力
+      console.log("Starting challenge with budget:", actualBudget)
+      // 明示的にactualBudgetを渡す
       onCreateChallenge(minBudget, maxBudget, actualBudget)
     }
   }
 
-  return (
-    <Box
-      sx={{
-      width: '100%',
-      height: '100vh',
-      maxWidth: "100%",
-      display: "flex",
-      flexDirection: "column",
-      gap: 3,
-      mx: "auto" }}
-    >
-      <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-        {/* <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
-          予算チャレンジ
-        </Typography>
-        <Typography variant="body1" gutterBottom align="center" sx={{ mb: 3 }}>
-          上限を設定して、ランダムな予算内で1日を過ごしましょう！
-        </Typography> */}
-        <Paper
-          elevation={3}
-          sx={{
-            p: 3,
-            marginBottom: 3,
-            borderRadius: 2,
-            textAlign: "center",
-            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-            color: "white",
-          }}
-        >
-          <Typography variant="h6" gutterBottom>
-            今日の予算
-          </Typography>
-          <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-            ¥{actualBudget && actualBudget.toLocaleString()}
-          </Typography>
-          <Button
-            variant="contained"
-            color="secondary"
-            fullWidth
-            size="large"
-            onClick={handleStartChallenge}
-            sx={{ mt: 2 }}
-          >
-            チャレンジ開始
-          </Button>
-        </Paper>
+  const handleSliderChange = (_: Event, newValue: number | number[]) => {
+    const [newMin, newMax] = newValue as number[]
 
+    // 固定されていない場合のみ値を更新
+    if (!isMinLocked) {
+      setMinBudget(newMin)
+    }
+
+    if (!isMaxLocked) {
+      setMaxBudget(newMax)
+    }
+
+    // 予算が既に生成されている場合、範囲変更時にリセット
+    if (actualBudget !== null) {
+      setActualBudget(null)
+    }
+  }
+
+  // 下限を上限に合わせる
+  const handleAlignMinToMax = () => {
+    setMinBudget(maxBudget)
+    if (actualBudget !== null) {
+      setActualBudget(null)
+    }
+  }
+
+  // 上限を下限に合わせる
+  const handleAlignMaxToMin = () => {
+    setMaxBudget(minBudget)
+    if (actualBudget !== null) {
+      setActualBudget(null)
+    }
+  }
+
+  // スライダーの値を計算（固定されている場合は固定値を使用）
+  const sliderValue = [
+    isMinLocked ? minBudget : Math.min(minBudget, maxBudget),
+    isMaxLocked ? maxBudget : Math.max(minBudget, maxBudget),
+  ]
+
+  return (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: "100%", mx: "auto" }}>
+      <Paper
+        elevation={3}
+        sx={{
+          p: 3,
+          borderRadius: 2,
+          textAlign: "center",
+          background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+          color: "white",
+        }}
+      >
         <Typography variant="h6" gutterBottom>
-          予算範囲を設定
+          今日の予算
         </Typography>
+        <Typography variant="h3" sx={{ fontWeight: "bold" }}>
+          ¥{actualBudget && actualBudget.toLocaleString()}
+        </Typography>
+        <Button
+          variant="contained"
+          color="secondary"
+          fullWidth
+          size="large"
+          onClick={handleStartChallenge}
+          sx={{ mt: 2 }}
+        >
+          チャレンジ開始
+        </Button>
+      </Paper>
+      <Paper elevation={2} sx={{ p: 3, pb: 0, borderRadius: 2 }}>
+        {/* <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
+          おこづかいチャレンジ
+        </Typography> */}
+        <Typography variant="body1" gutterBottom align="center" sx={{ mb: 3 }}>
+          予算を設定して、おこづかい内で1日を過ごしましょう！
+        </Typography>
+
+        {/* <Typography variant="h6" gutterBottom>
+          予算範囲を設定
+        </Typography> */}
         <Box sx={{ px: 2, mt: 4, mb: 5 }}>
-          <Slider
-            value={[minBudget, maxBudget]}
-            onChange={(_, newValue) => {
-              const [newMin, newMax] = newValue as number[]
-              setMinBudget(newMin)
-              setMaxBudget(newMax)
-            }}
+          <CustomSlider
+            value={sliderValue}
+            onChange={handleSliderChange}
             min={500}
             max={10000}
             step={100}
@@ -95,48 +150,71 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
             valueLabelFormat={(value) => `¥${value.toLocaleString()}`}
             getAriaLabel={(index) => (index === 0 ? "予算下限" : "予算上限")}
             sx={{ flexGrow: 1 }}
+            disabled={isMinLocked && isMaxLocked} // 両方固定されている場合は無効化
+            data-min-locked={isMinLocked ? "true" : "false"}
+            data-max-locked={isMaxLocked ? "true" : "false"}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
             <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                下限
-              </Typography>
+              <Box sx={{ display: "flex", justifyContent: 'space-between', alignItems: "center", mb: 1 }}>
+                <Tooltip title={isMinLocked ? "固定解除" : "固定"}>
+                  <IconButton
+                    size="small"
+                    onClick={() => setIsMinLocked(!isMinLocked)}
+                    color={isMinLocked ? "primary" : "default"}
+                  >
+                    {isMinLocked ? <Lock size={16} /> : <Unlock size={16} />}
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="上限に合わせる">
+                  <IconButton size="small" onClick={handleAlignMinToMax}>
+                    <ArrowRight size={16} />
+                  </IconButton>
+                </Tooltip>
+                {/* <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
+                  下限
+                </Typography> */}
+              </Box>
               <TextField
-                value={minBudget}
-                onChange={(e) => {
-                  const value = Number.parseInt(e.target.value)
-                  if (!isNaN(value) && value >= 500 && value <= maxBudget) {
-                    setMinBudget(value)
-                  }
-                }}
-                type="number"
-                size="small"
+                value={minBudget.toLocaleString()}
                 InputProps={{
                   startAdornment: "¥",
-                  inputProps: { min: 500, max: maxBudget },
+                  readOnly: true,
                 }}
+                size="small"
                 sx={{ width: 120 }}
-              />
+              >
+
+              </TextField>
             </Box>
             <Box>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                上限
-              </Typography>
+              <Box sx={{ display: "flex", justifyContent: 'space-between', alignItems: "center", mb: 1 }}>
+                {/* <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+                  上限
+                </Typography> */}
+                <Tooltip title="下限に合わせる">
+                  <IconButton size="small" onClick={handleAlignMaxToMin}>
+                    <ArrowLeft size={16} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title={isMaxLocked ? "固定解除" : "固定"}>
+                  <IconButton
+                    size="small"
+                    onClick={() => setIsMaxLocked(!isMaxLocked)}
+                    color={isMaxLocked ? "primary" : "default"}
+                  >
+                    {isMaxLocked ? <Lock size={16} /> : <Unlock size={16} />}
+                  </IconButton>
+                </Tooltip>
+              </Box>
               <TextField
-                value={maxBudget}
-                onChange={(e) => {
-                  const value = Number.parseInt(e.target.value)
-                  if (!isNaN(value) && value >= minBudget && value <= 10000) {
-                    setMaxBudget(value)
-                  }
-                }}
-                type="number"
-                size="small"
+                value={maxBudget.toLocaleString()}
                 InputProps={{
                   startAdornment: "¥",
-                  inputProps: { min: minBudget, max: 10000 },
+                  readOnly: true,
                 }}
-                sx={{ width: 120 }}
+                size="small"
+                sx={{ width: 120, ml: "auto" }}
               />
             </Box>
           </Box>
@@ -150,39 +228,10 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
           startIcon={<Dices />}
           onClick={handleGenerateBudget}
           sx={{ mb: 3 }}
+          disabled={actualBudget !== null}
         >
-          予算を決定する
+          {minBudget === maxBudget ? "この金額で決定する" : "予算をランダムに決定する"}
         </Button>
-
-        {/* {actualBudget && (
-          <Paper
-            elevation={3}
-            sx={{
-              p: 3,
-              borderRadius: 2,
-              textAlign: "center",
-              background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
-              color: "white",
-            }}
-          >
-            <Typography variant="h6" gutterBottom>
-              今日の予算
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: "bold" }}>
-              ¥{actualBudget.toLocaleString()}
-            </Typography>
-            <Button
-              variant="contained"
-              color="secondary"
-              fullWidth
-              size="large"
-              onClick={handleStartChallenge}
-              sx={{ mt: 2 }}
-            >
-              チャレンジ開始
-            </Button>
-          </Paper>
-        )} */}
       </Paper>
     </Box>
   )

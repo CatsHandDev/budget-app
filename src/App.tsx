@@ -104,7 +104,7 @@ export default function Home() {
           width: '100vw',
           height: '100vh',
           maxWidth: "100%",
-          pb: 7,
+          // pb: 7,
           display: "flex",
           flexDirection: "column",
           overflow: 'hidden',
