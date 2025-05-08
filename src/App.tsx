@@ -12,6 +12,12 @@ import { theme } from "./lib/theme"
 import BudgetSettingPage from "./components/budgetSettingPage"
 import ExpenseTrackingPage from "./components/expenseTrackingPage"
 import ChallengeHistoryPage from "./components/challengeHistoryPage"
+import {
+  saveChallengesToStorage,
+  loadChallengesFromStorage,
+  saveCurrentChallengeToStorage,
+  loadCurrentChallengeFromStorage
+} from "./lib/localStorage"
 
 export type Expense = {
   id: string
@@ -34,13 +40,46 @@ export default function Home() {
   const [value, setValue] = useState(0)
   const [currentChallenge, setCurrentChallenge] = useState<Challenge | null>(null)
   const [challenges, setChallenges] = useState<Challenge[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  // デバッグ用
+  // 初回レンダリング時にローカルストレージからデータを読み込む
   useEffect(() => {
-    if (currentChallenge) {
-      console.log("Current Challenge Updated:", currentChallenge)
+    const loadStoredData = () => {
+      const storedChallenges = loadChallengesFromStorage()
+      const storedCurrentChallenge = loadCurrentChallengeFromStorage()
+
+      setChallenges(storedChallenges)
+      setCurrentChallenge(storedCurrentChallenge)
+
+      // もし進行中のチャレンジがあれば、支出記録タブに移動
+      if (storedCurrentChallenge) {
+        setValue(1)
+      }
+
+      setIsLoading(false)
     }
-  }, [currentChallenge])
+
+    loadStoredData()
+  }, [])
+
+  // チャレンジリストが変更されたらローカルストレージに保存
+  useEffect(() => {
+    if (!isLoading) {
+      saveChallengesToStorage(challenges)
+    }
+  }, [challenges, isLoading])
+
+  // 現在のチャレンジが変更されたらローカルストレージに保存
+  useEffect(() => {
+    if (!isLoading) {
+      saveCurrentChallengeToStorage(currentChallenge)
+
+      // デバッグ用
+      if (currentChallenge) {
+        console.log("Current Challenge Updated:", currentChallenge)
+      }
+    }
+  }, [currentChallenge, isLoading])
 
   const handleCreateChallenge = (minBudget: number, maxBudget: number, actualBudget: number) => {
     console.log("Creating challenge with:", { minBudget, maxBudget, actualBudget })
@@ -104,14 +143,19 @@ export default function Home() {
           width: '100vw',
           height: '100vh',
           maxWidth: "100%",
-          // pb: 7,
           display: "flex",
           flexDirection: "column",
           overflow: 'hidden',
         }}
       >
         <Box sx={{ flexGrow: 1, overflow: "auto", p: 2 }}>
-          {value === 0 && <BudgetSettingPage onCreateChallenge={handleCreateChallenge} />}
+          {value === 0 && (
+            <BudgetSettingPage
+              onCreateChallenge={handleCreateChallenge}
+              hasActiveChallenge={currentChallenge !== null}
+              onNavigateToExpenses={() => setValue(1)}
+            />
+          )}
           {value === 1 && currentChallenge && (
             <ExpenseTrackingPage
               challenge={currentChallenge}
@@ -126,11 +170,16 @@ export default function Home() {
             showLabels
             value={value}
             onChange={(_, newValue) => {
-              setValue(newValue)
+              // 進行中のチャレンジがある場合、予算設定タブをクリックすると支出記録タブに移動
+              if (newValue === 0 && currentChallenge) {
+                setValue(1)
+              } else {
+                setValue(newValue)
+              }
             }}
           >
             <BottomNavigationAction label="予算設定" icon={<Calculator />} />
-            <BottomNavigationAction label="支出記録" icon={<Receipt />} />
+            <BottomNavigationAction label="支出記録" icon={<Receipt />} disabled={!currentChallenge} />
             <BottomNavigationAction label="履歴" icon={<History />} />
           </BottomNavigation>
         </Paper>

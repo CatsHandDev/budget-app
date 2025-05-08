@@ -10,7 +10,7 @@ import Paper from "@mui/material/Paper"
 import IconButton from "@mui/material/IconButton"
 import Tooltip from "@mui/material/Tooltip"
 import { styled } from "@mui/material/styles"
-import { Dices, Lock, Unlock, ArrowRight, ArrowLeft } from "lucide-react"
+import { Dices, Lock, Unlock, ArrowRight, ArrowLeft, Receipt } from "lucide-react"
 
 // カスタムスライダーのスタイリング
 const CustomSlider = styled(Slider)(({ theme }) => ({
@@ -28,9 +28,15 @@ const CustomSlider = styled(Slider)(({ theme }) => ({
 
 interface BudgetSettingPageProps {
   onCreateChallenge: (minBudget: number, maxBudget: number, actualBudget: number) => void
+  hasActiveChallenge?: boolean
+  onNavigateToExpenses?: () => void
 }
 
-export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPageProps) {
+export default function BudgetSettingPage({
+  onCreateChallenge,
+  hasActiveChallenge = false,
+  onNavigateToExpenses
+}: BudgetSettingPageProps) {
   const [maxBudget, setMaxBudget] = useState<number>(100000)
   const [minBudget, setMinBudget] = useState<number>(100)
   const [actualBudget, setActualBudget] = useState<number | null>(null)
@@ -99,6 +105,41 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
     isMaxLocked ? maxBudget : Math.max(minBudget, maxBudget),
   ]
 
+  // 進行中のチャレンジがある場合
+  if (hasActiveChallenge) {
+    return (
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mx: "auto", textAlign: "center" }}>
+        <Paper
+          elevation={3}
+          sx={{
+            p: 3,
+            borderRadius: 2,
+            textAlign: "center",
+            background: "linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)",
+            color: "white",
+          }}
+        >
+          <Typography variant="h6" gutterBottom>
+            チャレンジ進行中
+          </Typography>
+          <Typography variant="body1" sx={{ mb: 2 }}>
+            現在進行中のチャレンジがあります
+          </Typography>
+          <Button
+            variant="contained"
+            color="secondary"
+            fullWidth
+            size="large"
+            startIcon={<Receipt />}
+            onClick={onNavigateToExpenses}
+          >
+            支出記録に進む
+          </Button>
+        </Paper>
+      </Box>
+    )
+  }
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mx: "auto" }}>
       <Paper
@@ -124,21 +165,16 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
           size="large"
           onClick={handleStartChallenge}
           sx={{ mt: 2 }}
+          disabled={actualBudget === null}
         >
           チャレンジ開始
         </Button>
       </Paper>
       <Paper elevation={2} sx={{ p: 3, pb: 0, borderRadius: 2 }}>
-        {/* <Typography variant="h5" component="h1" gutterBottom align="center" sx={{ fontWeight: "bold" }}>
-          おこづかいチャレンジ
-        </Typography> */}
         <Typography variant="body1" gutterBottom align="center" sx={{ mb: 3 }}>
           予算を設定して、おこづかい内で1日を過ごしましょう！
         </Typography>
 
-        {/* <Typography variant="h6" gutterBottom>
-          予算範囲を設定
-        </Typography> */}
         <Box sx={{ px: 2, mt: 4, mb: 5 }}>
           <CustomSlider
             value={sliderValue}
@@ -171,9 +207,6 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
                     <ArrowRight size={16} />
                   </IconButton>
                 </Tooltip>
-                {/* <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                  下限
-                </Typography> */}
               </Box>
               <TextField
                 value={minBudget.toLocaleString()}
@@ -183,15 +216,10 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
                 }}
                 size="small"
                 sx={{ width: 120 }}
-              >
-
-              </TextField>
+              />
             </Box>
             <Box>
               <Box sx={{ display: "flex", justifyContent: 'space-between', alignItems: "center", mb: 1 }}>
-                {/* <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
-                  上限
-                </Typography> */}
                 <Tooltip title="下限に合わせる">
                   <IconButton size="small" onClick={handleAlignMaxToMin}>
                     <ArrowLeft size={16} />
