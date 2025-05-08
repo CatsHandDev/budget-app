@@ -39,8 +39,7 @@ export default function ChallengeHistoryPage({ challenges }: ChallengeHistoryPag
     <Box
       sx={{
         width: '100%',
-        height: '100vh',
-        maxWidth: "100%",
+        height: 'calc(100vh - 56px)',
         display: "flex",
         flexDirection: "column",
         gap: 3 }}

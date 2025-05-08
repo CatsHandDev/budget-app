@@ -100,7 +100,7 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
   ]
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, maxWidth: "100%", mx: "auto" }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, mx: "auto" }}>
       <Paper
         elevation={3}
         sx={{
@@ -143,8 +143,8 @@ export default function BudgetSettingPage({ onCreateChallenge }: BudgetSettingPa
           <CustomSlider
             value={sliderValue}
             onChange={handleSliderChange}
-            min={500}
-            max={10000}
+            min={100}
+            max={100000}
             step={100}
             valueLabelDisplay="auto"
             valueLabelFormat={(value) => `¥${value.toLocaleString()}`}

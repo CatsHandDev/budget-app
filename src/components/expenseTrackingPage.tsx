@@ -56,12 +56,12 @@ export default function ExpenseTrackingPage({
     <Box
       sx={{
         width: '100%',
-        height: '100vh',
-        maxWidth: "100%",
+        height: 'calc(100vh - 56px)',
         display: "flex",
         flexDirection: "column",
-        gap: 3 }}
-      >
+        gap: 3,
+      }}
+    >
       <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
         <Typography variant="h6" gutterBottom>
           今日の予算: ¥{challenge.actualBudget.toLocaleString()}
