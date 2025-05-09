@@ -135,6 +135,19 @@ export default function Home() {
     setValue(0) // Return to budget setting page
   }
 
+  // 1件削除処理
+  const handleDeleteChallenge = (id: string) => {
+    const updated = challenges.filter(c => c.id !== id)
+    setChallenges(updated)
+    setChallenges(updated)
+  }
+
+  // 全件削除処理
+  const handleDeleteAllChallenges = () => {
+    setChallenges([])
+    setChallenges([])
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -163,7 +176,13 @@ export default function Home() {
               onCompleteChallenge={handleCompleteChallenge}
             />
           )}
-          {value === 2 && <ChallengeHistoryPage challenges={challenges} />}
+          {value === 2 &&
+            <ChallengeHistoryPage
+              challenges={challenges}
+              onDeleteChallenge={handleDeleteChallenge}
+              onDeleteAllChallenges={handleDeleteAllChallenges}
+            />
+          }
         </Box>
         <Paper sx={{ position: "fixed", bottom: 0, left: 0, right: 0 }} elevation={3}>
           <BottomNavigation

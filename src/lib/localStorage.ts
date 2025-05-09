@@ -38,6 +38,28 @@ export const loadChallengesFromStorage = (): Challenge[] => {
   }
 }
 
+// 特定のチャレンジを削除する
+export const deleteChallengeFromStorage = (challengeId: string): Challenge[] => {
+  try {
+    const challenges = loadChallengesFromStorage()
+    const updatedChallenges = challenges.filter(challenge => challenge.id !== challengeId)
+    saveChallengesToStorage(updatedChallenges)
+    return updatedChallenges
+  } catch (error) {
+    console.error("Failed to delete challenge from local storage:", error)
+    return loadChallengesFromStorage() // エラー時は現在の状態を返す
+  }
+}
+
+// すべてのチャレンジ履歴を削除する
+export const deleteAllChallengesFromStorage = (): void => {
+  try {
+    localStorage.removeItem(CHALLENGES_STORAGE_KEY)
+  } catch (error) {
+    console.error("Failed to delete all challenges from local storage:", error)
+  }
+}
+
 // 現在進行中のチャレンジの保存
 export const saveCurrentChallengeToStorage = (challenge: Challenge | null): void => {
   try {

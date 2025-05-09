@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, ChangeEvent } from "react"
 import Box from "@mui/material/Box"
 import Typography from "@mui/material/Typography"
 import Slider from "@mui/material/Slider"
@@ -37,11 +37,15 @@ export default function BudgetSettingPage({
   hasActiveChallenge = false,
   onNavigateToExpenses
 }: BudgetSettingPageProps) {
-  const [maxBudget, setMaxBudget] = useState<number>(100000)
-  const [minBudget, setMinBudget] = useState<number>(100)
+  const [maxBudget, setMaxBudget] = useState<number>(10000)
+  const [minBudget, setMinBudget] = useState<number>(3000)
   const [actualBudget, setActualBudget] = useState<number | null>(null)
   const [isMinLocked, setIsMinLocked] = useState<boolean>(false)
   const [isMaxLocked, setIsMaxLocked] = useState<boolean>(false)
+
+  // 表示用のフォーマット済み文字列の状態
+  const [minBudgetInput, setMinBudgetInput] = useState<string>(minBudget.toLocaleString())
+  const [maxBudgetInput, setMaxBudgetInput] = useState<string>(maxBudget.toLocaleString())
 
   const handleGenerateBudget = () => {
     // 上限と下限が同じ場合は、その値を予算とする
@@ -71,10 +75,12 @@ export default function BudgetSettingPage({
     // 固定されていない場合のみ値を更新
     if (!isMinLocked) {
       setMinBudget(newMin)
+      setMinBudgetInput(newMin.toLocaleString())
     }
 
     if (!isMaxLocked) {
       setMaxBudget(newMax)
+      setMaxBudgetInput(newMax.toLocaleString())
     }
 
     // 予算が既に生成されている場合、範囲変更時にリセット
@@ -83,9 +89,53 @@ export default function BudgetSettingPage({
     }
   }
 
+  // 下限入力フィールドの変更ハンドラ
+  const handleMinBudgetChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isMinLocked) return;
+
+    const inputValue = e.target.value.replace(/[¥,\s]/g, '');
+    setMinBudgetInput(inputValue);
+
+    const parsedValue = parseInt(inputValue);
+    if (!isNaN(parsedValue) && parsedValue >= 100 && parsedValue <= 100000) {
+      // 有効な値の場合のみ状態を更新
+      setMinBudget(parsedValue);
+      // 既に予算が生成されている場合はリセット
+      if (actualBudget !== null) {
+        setActualBudget(null);
+      }
+    }
+  }
+
+  // 上限入力フィールドの変更ハンドラ
+  const handleMaxBudgetChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (isMaxLocked) return;
+
+    const inputValue = e.target.value.replace(/[¥,\s]/g, '');
+    setMaxBudgetInput(inputValue);
+
+    const parsedValue = parseInt(inputValue);
+    if (!isNaN(parsedValue) && parsedValue >= 100 && parsedValue <= 100000) {
+      // 有効な値の場合のみ状態を更新
+      setMaxBudget(parsedValue);
+      // 既に予算が生成されている場合はリセット
+      if (actualBudget !== null) {
+        setActualBudget(null);
+      }
+    }
+  }
+
+  // 入力フィールドのフォーカスが外れた時の処理
+  const handleBlur = () => {
+    // 不正な値が入力された場合、有効な値に戻す
+    setMinBudgetInput(minBudget.toLocaleString());
+    setMaxBudgetInput(maxBudget.toLocaleString());
+  }
+
   // 下限を上限に合わせる
   const handleAlignMinToMax = () => {
     setMinBudget(maxBudget)
+    setMinBudgetInput(maxBudget.toLocaleString())
     if (actualBudget !== null) {
       setActualBudget(null)
     }
@@ -94,6 +144,7 @@ export default function BudgetSettingPage({
   // 上限を下限に合わせる
   const handleAlignMaxToMin = () => {
     setMaxBudget(minBudget)
+    setMaxBudgetInput(minBudget.toLocaleString())
     if (actualBudget !== null) {
       setActualBudget(null)
     }
@@ -153,7 +204,7 @@ export default function BudgetSettingPage({
         }}
       >
         <Typography variant="h6" gutterBottom>
-          今日の予算
+          今日のおこづかい
         </Typography>
         <Typography variant="h3" sx={{ fontWeight: "bold" }}>
           ¥{actualBudget && actualBudget.toLocaleString()}
@@ -180,7 +231,7 @@ export default function BudgetSettingPage({
             value={sliderValue}
             onChange={handleSliderChange}
             min={100}
-            max={100000}
+            max={30000}
             step={100}
             valueLabelDisplay="auto"
             valueLabelFormat={(value) => `¥${value.toLocaleString()}`}
@@ -209,10 +260,12 @@ export default function BudgetSettingPage({
                 </Tooltip>
               </Box>
               <TextField
-                value={minBudget.toLocaleString()}
+                value={minBudgetInput}
+                onChange={handleMinBudgetChange}
+                onBlur={handleBlur}
                 InputProps={{
                   startAdornment: "¥",
-                  readOnly: true,
+                  readOnly: isMinLocked,
                 }}
                 size="small"
                 sx={{ width: 120 }}
@@ -236,10 +289,12 @@ export default function BudgetSettingPage({
                 </Tooltip>
               </Box>
               <TextField
-                value={maxBudget.toLocaleString()}
+                value={maxBudgetInput}
+                onChange={handleMaxBudgetChange}
+                onBlur={handleBlur}
                 InputProps={{
                   startAdornment: "¥",
-                  readOnly: true,
+                  readOnly: isMaxLocked,
                 }}
                 size="small"
                 sx={{ width: 120, ml: "auto" }}
