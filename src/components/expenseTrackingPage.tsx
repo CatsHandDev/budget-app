@@ -19,16 +19,23 @@ import type { Challenge } from "../App"
 interface ExpenseTrackingPageProps {
   challenge: Challenge | null
   onAddExpense: (amount: number, description: string) => void
+  onUpdateExpense: (id: string, amount: number, description: string) => void
+  onDeleteExpense: (id: string) => void
   onCompleteChallenge: () => void
 }
 
 export default function ExpenseTrackingPage({
   challenge,
   onAddExpense,
+  onUpdateExpense,
+  onDeleteExpense,
   onCompleteChallenge,
 }: ExpenseTrackingPageProps) {
   const [amount, setAmount] = useState<string>("")
   const [description, setDescription] = useState<string>("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editAmount, setEditAmount] = useState<string>("")
+  const [editDescription, setEditDescription] = useState<string>("")
 
   if (!challenge) {
     return (
@@ -125,16 +132,73 @@ export default function ExpenseTrackingPage({
               <Box key={expense.id}>
                 {index > 0 && <Divider component="li" />}
                 <ListItem>
-                  <ListItemText
-                    primary={expense.description}
-                    secondary={new Date(expense.timestamp).toLocaleTimeString("ja-JP", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  />
-                  <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-                    ¥{expense.amount.toLocaleString()}
-                  </Typography>
+                  {editingId === expense.id ? (
+                    <Box sx={{ width: "100%" }}>
+                      <TextField
+                        label="金額"
+                        value={editAmount}
+                        onChange={(e) => setEditAmount(e.target.value)}
+                        type="number"
+                        fullWidth
+                        sx={{ mb: 1 }}
+                      />
+                      <TextField
+                        label="内容"
+                        value={editDescription}
+                        onChange={(e) => setEditDescription(e.target.value)}
+                        fullWidth
+                        sx={{ mb: 1 }}
+                      />
+                      <Box sx={{ display: "flex", gap: 1 }}>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => {
+                            const updatedAmount = Number.parseFloat(editAmount)
+                            if (!isNaN(updatedAmount) && editDescription.trim()) {
+                              onUpdateExpense(expense.id, updatedAmount, editDescription.trim())
+                              setEditingId(null)
+                            }
+                          }}
+                        >
+                          保存
+                        </Button>
+                        <Button variant="outlined" onClick={() => setEditingId(null)}>キャンセル</Button>
+                      </Box>
+                    </Box>
+                  ) : (
+                    <>
+                      <ListItemText
+                        primary={expense.description}
+                        secondary={new Date(expense.timestamp).toLocaleTimeString("ja-JP", {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      />
+                      <Typography variant="body1" sx={{ fontWeight: "bold", mr: 2 }}>
+                        ¥{expense.amount.toLocaleString()}
+                      </Typography>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={() => {
+                          setEditingId(expense.id)
+                          setEditAmount(expense.amount.toString())
+                          setEditDescription(expense.description)
+                        }}
+                      >
+                        編集
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => onDeleteExpense(expense.id)}
+                        sx={{ ml: 1 }}
+                      >
+                        削除
+                      </Button>
+                    </>
+                  )}
                 </ListItem>
               </Box>
             ))}

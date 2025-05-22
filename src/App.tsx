@@ -148,6 +148,40 @@ export default function Home() {
     setChallenges([])
   }
 
+  // 支出の編集
+  const handleUpdateExpense = (id: string, amount: number, description: string) => {
+    if (!currentChallenge) return
+
+    setCurrentChallenge(prev => {
+      if (!prev) return null
+
+      const updatedExpenses = prev.expenses.map(expense =>
+        expense.id === id ? { ...expense, amount, description } : expense
+      )
+
+      return {
+        ...prev,
+        expenses: updatedExpenses,
+      }
+    })
+  }
+
+  // 支出の削除
+  const handleDeleteExpense = (id: string) => {
+    if (!currentChallenge) return
+
+    setCurrentChallenge(prev => {
+      if (!prev) return null
+
+      const filteredExpenses = prev.expenses.filter(expense => expense.id !== id)
+
+      return {
+        ...prev,
+        expenses: filteredExpenses,
+      }
+    })
+  }
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
@@ -173,6 +207,8 @@ export default function Home() {
             <ExpenseTrackingPage
               challenge={currentChallenge}
               onAddExpense={handleAddExpense}
+              onUpdateExpense={handleUpdateExpense}
+              onDeleteExpense={handleDeleteExpense}
               onCompleteChallenge={handleCompleteChallenge}
             />
           )}
